@@ -43,7 +43,7 @@ proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
 upstream {{ .Host }} {
 {{ range $container := .Containers }}
 	{{ $port := coalesce $container.Env.VIRTUAL_PORT (first $container.Addresses).Port "80" }}
-	{{ $address := coalesce (first $container.Addresses).IP (first $container.Networks).IP }}
+	{{ $address := or (first $container.Addresses).IP (first $container.Networks).IP }}
 	server {{ $address }}:{{ $port }};
 {{ end }}
 }
