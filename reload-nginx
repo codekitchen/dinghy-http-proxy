@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+name=${CONTAINER_NAME:-dinghy_http_proxy}
+
+# Join any networks we haven't joined yet, so that we can talk to containers on
+# those networks. This allows us to talk to containers created with
+# docker-compose v2 configs.
+#
+# This would be better rewritten as a binary that talks directly to the docker
+# API, to avoid the brittle CLI parsing.
+docker inspect -f '{{ range .NetworkSettings.Networks }}{{ .NetworkID }}
+{{ end }}' $name > /tmp/current_networks
+
+for network in `docker network ls | grep bridge | awk '{print $1}'`; do
+  if ! grep -q $network /tmp/current_networks; then
+    docker network connect $network $name
+  fi
+done
+
+# Now that we can reach these other hosts, reload nginx. Order is important
+# here, as nginx errors on startup if it can't resolve any of the specified
+# reverse proxy hosts.
+nginx -s reload

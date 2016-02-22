@@ -1,0 +1,88 @@
+{{ $CurrentContainer := where $ "Hostname" .Env.HOSTNAME | first }}
+
+# If we receive X-Forwarded-Proto, pass it through; otherwise, pass along the
+# scheme used to connect to this server
+map $http_x_forwarded_proto $proxy_x_forwarded_proto {
+  default $http_x_forwarded_proto;
+  ''      $scheme;
+}
+
+# If we receive Upgrade, set Connection to "upgrade"; otherwise, delete any
+# Connection header that may have been passed to this server
+map $http_upgrade $proxy_connection {
+  default upgrade;
+  '' close;
+}
+
+gzip_types text/plain text/css application/javascript application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+
+log_format vhost '$host $remote_addr - $remote_user [$time_local] '
+                 '"$request" $status $body_bytes_sent '
+                 '"$http_referer" "$http_user_agent"';
+
+access_log off;
+
+{{ if (exists "/etc/nginx/proxy.conf") }}
+include /etc/nginx/proxy.conf;
+{{ else }}
+# HTTP 1.1 support
+proxy_http_version 1.1;
+proxy_buffering off;
+proxy_set_header Host $http_host;
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection $proxy_connection;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
+{{ end }}
+
+{{ define "server" }}
+{{/* Get the VIRTUAL_PROTO defined by containers w/ the same vhost, falling back to "http" */}}
+{{ $proto := or (first (groupByKeys .Containers "Env.VIRTUAL_PROTO")) "http" }}
+
+upstream {{ .Host }} {
+{{ range $container := .Containers }}
+	{{ $port := coalesce $container.Env.VIRTUAL_PORT (first $container.Addresses).Port "80" }}
+	{{ $address := coalesce (first $container.Addresses).IP (first $container.Networks).IP }}
+	server {{ $address }}:{{ $port }};
+{{ end }}
+}
+
+server {
+	server_name {{ .Host }};
+	listen 80;
+	access_log /var/log/nginx/access.log vhost;
+
+	{{ if (exists (printf "/etc/nginx/vhost.d/%s" .Host)) }}
+	include {{ printf "/etc/nginx/vhost.d/%s" .Host }};
+	{{ else if (exists "/etc/nginx/vhost.d/default") }}
+	include /etc/nginx/vhost.d/default;
+	{{ end }}
+
+	location / {
+		proxy_pass {{ trim $proto }}://{{ trim .Host }};
+		{{ if (exists (printf "/etc/nginx/htpasswd/%s" .Host)) }}
+		auth_basic	"Restricted {{ .Host }}";
+		auth_basic_user_file	{{ (printf "/etc/nginx/htpasswd/%s" .Host) }};
+		{{ end }}
+                {{ if (exists (printf "/etc/nginx/vhost.d/%s_location" .Host)) }}
+                include {{ printf "/etc/nginx/vhost.d/%s_location" .Host}};
+                {{ else if (exists "/etc/nginx/vhost.d/default_location") }}
+                include /etc/nginx/vhost.d/default_location;
+                {{ end }}
+	}
+}
+{{ end }}
+
+{{ $explicit := whereExist $ "Env.VIRTUAL_HOST" }}
+{{ range $host, $containers := groupByMulti $explicit "Env.VIRTUAL_HOST" "," }}
+	{{ template "server" (dict "Containers" $containers "Host" $host) }}
+{{ end }}
+
+{{ range $project, $projContainers := groupByLabel $ "com.docker.compose.project" }}
+  {{ range $service, $containers := groupByLabel $projContainers "com.docker.compose.service" }}
+	  {{ $container := first $containers }}
+		{{ $host := printf "%s.%s.%s" $service $project "docker" }}
+		{{ template "server" (dict "Containers" $containers "Host" $host) }}
+	{{ end }}
+{{ end }}
