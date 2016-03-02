@@ -8,6 +8,10 @@ RUN wget https://github.com/codekitchen/docker-gen/releases/download/v0.6-groupB
  && rm docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz
 # /XXX
 
+RUN wget https://github.com/codekitchen/dinghy-http-proxy/releases/download/join-networks-v1/join-networks.tar.gz \
+ && tar -C /app -xzvf join-networks.tar.gz \
+ && rm join-networks.tar.gz
+
 # override nginx configs
 COPY *.conf /etc/nginx/conf.d/
 

@@ -1,0 +1,4 @@
+[submodule "vendor/github.com/fsouza/go-dockerclient"]
+	path = vendor/github.com/fsouza/go-dockerclient
+	url = https://github.com/codekitchen/go-dockerclient.git
+	branch = add-network-id
