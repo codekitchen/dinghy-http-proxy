@@ -1,4 +1,5 @@
 {{ $CurrentContainer := where $ "Hostname" .Env.HOSTNAME | first }}
+{{ $TLD := .Env.DOMAIN_TLD }}
 
 # If we receive X-Forwarded-Proto, pass it through; otherwise, pass along the
 # scheme used to connect to this server
@@ -81,7 +82,7 @@ server {
 
 {{ range $project, $projContainers := groupByLabel $ "com.docker.compose.project" }}
   {{ range $service, $containers := groupByLabel $projContainers "com.docker.compose.service" }}
-		{{ $host := printf "%s.%s.%s" $service $project "docker" }}
+		{{ $host := printf "%s.%s.%s" $service $project $TLD }}
     {{/* Don't create the implicit host if an explicit VIRTUAL_HOST with the same name has been defined */}}
     {{ if eq 0 (len (where $ "Env.VIRTUAL_HOST" $host)) }}
   	  {{ $container := first $containers }}

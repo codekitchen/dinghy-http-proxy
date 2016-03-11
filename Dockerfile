@@ -17,3 +17,5 @@ COPY *.conf /etc/nginx/conf.d/
 
 # override nginx-proxy templating
 COPY nginx.tmpl Procfile reload-nginx /app/
+
+ENV DOMAIN_TLD docker
