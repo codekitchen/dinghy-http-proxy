@@ -49,6 +49,9 @@ upstream {{ .Host }} {
 {{ end }}
 }
 
+{{/* Get the HTTPS_METHOD defined by containers w/ the same vhost, falling back to "redirect" */}}
+{{ $https_method := or (first (groupByKeys .Containers "Env.HTTPS_METHOD")) "redirect" }}
+
 {{/* Get the first cert name defined by containers w/ the same vhost */}}
 {{ $certName := (first (groupByKeys .Containers "Env.CERT_NAME")) }}
 
@@ -62,14 +65,18 @@ upstream {{ .Host }} {
 {{/* Use the cert specifid on the container or fallback to the best vhost match */}}
 {{ $cert := (coalesce $certName $vhostCert) }}
 
-{{ if (and (ne $cert "") (exists (printf "/etc/nginx/certs/%s.crt" $cert)) (exists (printf "/etc/nginx/certs/%s.key" $cert))) }}
+{{ $is_https := (and (ne $cert "") (exists (printf "/etc/nginx/certs/%s.crt" $cert)) (exists (printf "/etc/nginx/certs/%s.key" $cert))) }}
 
+{{ if $is_https }}
+
+{{ if eq $https_method "redirect" }}
 server {
 	server_name {{ .Host }};
 	listen 80;
 	access_log /var/log/nginx/access.log vhost;
 	return 301 https://{{ .Host }}$request_uri;
 }
+{{ end }}
 
 server {
 	server_name {{ .Host }};
@@ -112,7 +119,9 @@ server {
 	}
 }
 
-{{ else }}
+{{ end }}
+
+{{ if or (not $is_https) (eq $https_method "noredirect") }}
 
 server {
 	server_name {{ .Host }};
@@ -138,6 +147,14 @@ server {
                 {{ end }}
 	}
 }
+{{ else if not (eq $https_method "nohttp") }}
+server {
+	server_name {{ .Host }};
+	listen 80;
+	access_log /var/log/nginx/access.log vhost;
+ 	return 503 "Unknown HTTPS_METHOD {{ $https_method }}";
+ 	add_header Content-Type text/plain;
+ }
 {{ end }}
 {{ end }}
 
