@@ -25,8 +25,12 @@ outside of Dinghy, this proxy now supports running standalone.
 
 ### OS X
 
-You'll need the IP of your VM. You can run `docker-machine ip <machine_name>` to
-get the IP if using docker-machine. Then start the proxy:
+You'll need the IP of your VM:
+
+* For docker-machine, run `docker-machine ip <machine_name>` to get the IP.
+* For Docker for Mac, you can use `127.0.0.1` as the IP, since it forwards docker ports to the host machine.
+
+Then start the proxy:
 
     docker run -d --restart=always \
       -v /var/run/docker.sock:/tmp/docker.sock:ro \
