@@ -10,13 +10,80 @@ modifications to make it more suitable for local development work.
 A DNS resolver is also added. By default it will resolve all `*.docker` domains
 to the Docker VM, but this can be changed.
 
+## Configuration
+
+### Exposed Ports
+
+The proxy will by default use the first port exposed by your container as the
+HTTP port to proxy to. This can be overridden by setting the VIRTUAL_PORT
+environment variable on the container to the desired HTTP port.
+
+### Docker Compose Projects
+
+The proxy will auto-generate a hostname based on the docker tags that
+docker-compose adds to each container. This hostname is of the form
+`<service>.<project>.<tld>`. For instance, assuming the default `*.docker` TLD,
+a "web" service in a "myapp" docker-compose project will be automatically made
+available at http://web.myapp.docker/.
+
+### Explicitly Setting a Hostname
+
 As in the base nginx-proxy, you can configure a container's hostname by setting
-the `VIRTUAL_HOST` environment variable in the container. In addition, this
-proxy also auto-creates hostnames for docker-compose projects. The format is
-`<container_name>.<compose_project_name>.<tld>`. For example, for a container
-named `web` in a docker-compose project named `myapp`, you can visit
-http://web.myapp.docker to be proxied to that container, without setting
-`VIRTUAL_HOST`.
+the `VIRTUAL_HOST` environment variable in the container.
+
+You can set the `VIRTUAL_HOST`
+environment variable either with the `-e` option to docker or
+the environment hash in docker-compose. For instance setting
+`VIRTUAL_HOST=myrailsapp.docker` will make the container's exposed port
+available at http://myrailsapp.docker/.
+
+This will work even if dinghy auto-generates a hostname based on the
+docker-compose tags.
+
+### Subdomain Support
+
+If you want your container to also be available at all subdomains to the given
+domain, prefix a dot `.` to the provided hostname. For instance setting
+`VIRTUAL_HOST=.myrailsapp.docker` will also make your app avaiable at
+`*.myrailsapp.docker`.
+
+### SSL Support
+
+SSL is supported using single host certificates using naming conventions.
+
+To enable SSL, just put your certificates and privates keys in the ```HOME/.dinghy/certs``` directory
+for any virtual hosts in use.  The certificate and keys should be named after the virtual host with a `.crt` and
+`.key` extension.  For example, a container with `VIRTUAL_HOST=foo.bar.com.docker` should have a
+`foo.bar.com.docker.crt` and `foo.bar.com.docker.key` file in the certs directory.
+
+#### How SSL Support Works
+
+The SSL cipher configuration is based on [mozilla nginx intermediate profile](https://wiki.mozilla.org/Security/Server_Side_TLS#Nginx) which
+should provide compatibility with clients back to Firefox 1, Chrome 1, IE 7, Opera 5, Safari 1,
+Windows XP IE8, Android 2.3, Java 7.  The configuration also enables HSTS, and SSL
+session caches.
+
+The default behavior for the proxy when port 80 and 443 are exposed is as follows:
+
+* If a container has a usable cert, port 80 will redirect to 443 for that container so that HTTPS
+is always preferred when available.
+* If the container does not have a usable cert, port 80 will be used.
+
+To serve traffic in both SSL and non-SSL modes without redirecting to SSL, you can include the
+environment variable `HTTPS_METHOD=noredirect` (the default is `HTTPS_METHOD=redirect`).  You can also
+disable the non-SSL site entirely with `HTTPS_METHOD=nohttp`.
+
+#### How to quickly generate self-signed certificates
+
+You can generate self-signed certificates using ```openssl```.
+
+```bash
+openssl req -x509 -newkey rsa:2048 -keyout foo.bar.com.docker.key \
+-out foo.bar.com.docker.crt -days 365 -nodes \
+-subj "/C=US/ST=Oregon/L=Portland/O=Company Name/OU=Org/CN=foo.bar.com.docker"
+```
+
+To prevent your browser to emit warning regarding self-signed certificates, you can install them on your system as trusted certificates.
 
 ## Using Outside of Dinghy
 
