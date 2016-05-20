@@ -166,10 +166,11 @@ server {
 {{ range $project, $projContainers := groupByLabel $ "com.docker.compose.project" }}
   {{ range $service, $containers := groupByLabel $projContainers "com.docker.compose.service" }}
 		{{ $host := printf "%s.%s.%s" $service $project $TLD }}
+    {{ $dottedHost := printf ".%s" $host }}
     {{/* Don't create the implicit host if an explicit VIRTUAL_HOST with the same name has been defined */}}
-    {{ if eq 0 (len (where $ "Env.VIRTUAL_HOST" $host)) }}
+    {{ if and (eq 0 (len (where $ "Env.VIRTUAL_HOST" $host))) (eq 0 (len (where $ "Env.VIRTUAL_HOST" $dottedHost))) }}
   	  {{ $container := first $containers }}
-  		{{ template "server" (dict "Containers" $containers "Host" $host) }}
+  		{{ template "server" (dict "Containers" $containers "Host" $dottedHost) }}
     {{ end }}
 	{{ end }}
 {{ end }}

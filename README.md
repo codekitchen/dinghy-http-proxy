@@ -47,6 +47,8 @@ domain, prefix a dot `.` to the provided hostname. For instance setting
 `VIRTUAL_HOST=.myrailsapp.docker` will also make your app avaiable at
 `*.myrailsapp.docker`.
 
+This happens automatically for the auto-generated docker-compose hostnames.
+
 ### SSL Support
 
 SSL is supported using single host certificates using naming conventions.
