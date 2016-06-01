@@ -147,14 +147,6 @@ server {
                 {{ end }}
 	}
 }
-{{ else if not (eq $https_method "nohttp") }}
-server {
-	server_name {{ .Host }};
-	listen 80;
-	access_log /var/log/nginx/access.log vhost;
- 	return 503 "Unknown HTTPS_METHOD {{ $https_method }}";
- 	add_header Content-Type text/plain;
- }
 {{ end }}
 {{ end }}
 
