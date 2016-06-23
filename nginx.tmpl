@@ -37,6 +37,13 @@ proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
 {{ end }}
 
+server {
+  listen 80 default_server;
+  server_name _;
+  root /var/www/default/htdocs;
+  error_page 404 /index.html;
+}
+
 {{ define "server" }}
 {{/* Get the VIRTUAL_PROTO defined by containers w/ the same vhost, falling back to "http" */}}
 {{ $proto := or (first (groupByKeys .Containers "Env.VIRTUAL_PROTO")) "http" }}

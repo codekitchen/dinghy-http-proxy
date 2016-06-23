@@ -19,5 +19,7 @@ COPY *.conf /etc/nginx/conf.d/
 # override nginx-proxy templating
 COPY nginx.tmpl Procfile reload-nginx /app/
 
+COPY htdocs /var/www/default/htdocs/
+
 ENV DOMAIN_TLD docker
 ENV DNS_IP 127.0.0.1
