@@ -103,6 +103,7 @@ Then start the proxy:
 
     docker run -d --restart=always \
       -v /var/run/docker.sock:/tmp/docker.sock:ro \
+      -v ~/.dinghy/certs:/etc/nginx/certs \
       -p 80:80 -p 443:443 -p 19322:19322/udp \
       -e DNS_IP=<vm_ip> -e CONTAINER_NAME=http-proxy \
       --name http-proxy \
@@ -127,6 +128,7 @@ the proxy:
 
     docker run -d --restart=always \
       -v /var/run/docker.sock:/tmp/docker.sock:ro \
+      -v ~/.dinghy/certs:/etc/nginx/certs \
       -p 80:80 -p 443:443 -p 19322:19322/udp \
       -e CONTAINER_NAME=http-proxy \
       --name http-proxy \
