@@ -81,7 +81,7 @@ server {
 	server_name {{ .Host }};
 	listen 80;
 	access_log /var/log/nginx/access.log vhost;
-	return 301 https://{{ .Host }}$request_uri;
+	return 301 https://$host$request_uri;
 }
 {{ end }}
 
