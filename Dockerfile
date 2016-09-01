@@ -23,3 +23,4 @@ COPY htdocs /var/www/default/htdocs/
 
 ENV DOMAIN_TLD docker
 ENV DNS_IP 127.0.0.1
+ENV HOSTMACHINE_IP 127.0.0.1
