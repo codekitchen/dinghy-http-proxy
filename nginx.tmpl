@@ -45,10 +45,13 @@ server {
 }
 
 {{ define "server" }}
+
+{{ $host := trim .Host }}
+
 {{/* Get the VIRTUAL_PROTO defined by containers w/ the same vhost, falling back to "http" */}}
 {{ $proto := or (first (groupByKeys .Containers "Env.VIRTUAL_PROTO")) "http" }}
 
-upstream {{ .Host }} {
+upstream {{ $host }} {
 {{ range $container := .Containers }}
 	{{ $port := coalesce $container.Env.VIRTUAL_PORT (first $container.Addresses).Port "80" }}
 	{{ $address := or (first $container.Addresses).IP (first $container.Networks).IP }}
@@ -63,7 +66,7 @@ upstream {{ .Host }} {
 {{ $certName := (first (groupByKeys .Containers "Env.CERT_NAME")) }}
 
 {{/* Get the best matching cert  by name for the vhost. */}}
-{{ $vhostCert := (closest (dir "/etc/nginx/certs") (printf "%s.crt" .Host))}}
+{{ $vhostCert := (closest (dir "/etc/nginx/certs") (printf "%s.crt" $host))}}
 
 {{/* vhostCert is actually a filename so remove any suffixes since they are added later */}}
 {{ $vhostCert := replace $vhostCert ".crt" "" -1 }}
@@ -78,7 +81,7 @@ upstream {{ .Host }} {
 
 {{ if eq $https_method "redirect" }}
 server {
-	server_name {{ .Host }};
+	server_name {{ $host }};
 	listen 80;
 	access_log /var/log/nginx/access.log vhost;
 	return 301 https://$host$request_uri;
@@ -86,7 +89,7 @@ server {
 {{ end }}
 
 server {
-	server_name {{ .Host }};
+	server_name {{ $host }};
 	listen 443 ssl;
 	access_log /var/log/nginx/access.log vhost;
 
@@ -106,20 +109,20 @@ server {
 
 	add_header Strict-Transport-Security "max-age=31536000";
 
-	{{ if (exists (printf "/etc/nginx/vhost.d/%s" .Host)) }}
-	include {{ printf "/etc/nginx/vhost.d/%s" .Host }};
+	{{ if (exists (printf "/etc/nginx/vhost.d/%s" $host)) }}
+	include {{ printf "/etc/nginx/vhost.d/%s" $host }};
 	{{ else if (exists "/etc/nginx/vhost.d/default") }}
 	include /etc/nginx/vhost.d/default;
 	{{ end }}
 
 	location / {
-		proxy_pass {{ trim $proto }}://{{ trim .Host }};
-		{{ if (exists (printf "/etc/nginx/htpasswd/%s" .Host)) }}
-		auth_basic	"Restricted {{ .Host }}";
-		auth_basic_user_file	{{ (printf "/etc/nginx/htpasswd/%s" .Host) }};
+		proxy_pass {{ trim $proto }}://{{ trim $host }};
+		{{ if (exists (printf "/etc/nginx/htpasswd/%s" $host)) }}
+		auth_basic	"Restricted {{ $host }}";
+		auth_basic_user_file	{{ (printf "/etc/nginx/htpasswd/%s" $host) }};
 		{{ end }}
-                {{ if (exists (printf "/etc/nginx/vhost.d/%s_location" .Host)) }}
-                include {{ printf "/etc/nginx/vhost.d/%s_location" .Host}};
+                {{ if (exists (printf "/etc/nginx/vhost.d/%s_location" $host)) }}
+                include {{ printf "/etc/nginx/vhost.d/%s_location" $host}};
                 {{ else if (exists "/etc/nginx/vhost.d/default_location") }}
                 include /etc/nginx/vhost.d/default_location;
                 {{ end }}
@@ -131,24 +134,24 @@ server {
 {{ if or (not $is_https) (eq $https_method "noredirect") }}
 
 server {
-	server_name {{ .Host }};
+	server_name {{ $host }};
 	listen 80;
 	access_log /var/log/nginx/access.log vhost;
 
-	{{ if (exists (printf "/etc/nginx/vhost.d/%s" .Host)) }}
-	include {{ printf "/etc/nginx/vhost.d/%s" .Host }};
+	{{ if (exists (printf "/etc/nginx/vhost.d/%s" $host)) }}
+	include {{ printf "/etc/nginx/vhost.d/%s" $host }};
 	{{ else if (exists "/etc/nginx/vhost.d/default") }}
 	include /etc/nginx/vhost.d/default;
 	{{ end }}
 
 	location / {
-		proxy_pass {{ trim $proto }}://{{ trim .Host }};
-		{{ if (exists (printf "/etc/nginx/htpasswd/%s" .Host)) }}
-		auth_basic	"Restricted {{ .Host }}";
-		auth_basic_user_file	{{ (printf "/etc/nginx/htpasswd/%s" .Host) }};
+		proxy_pass {{ trim $proto }}://{{ trim $host }};
+		{{ if (exists (printf "/etc/nginx/htpasswd/%s" $host)) }}
+		auth_basic	"Restricted {{ $host }}";
+		auth_basic_user_file	{{ (printf "/etc/nginx/htpasswd/%s" $host) }};
 		{{ end }}
-                {{ if (exists (printf "/etc/nginx/vhost.d/%s_location" .Host)) }}
-                include {{ printf "/etc/nginx/vhost.d/%s_location" .Host}};
+                {{ if (exists (printf "/etc/nginx/vhost.d/%s_location" $host)) }}
+                include {{ printf "/etc/nginx/vhost.d/%s_location" $host}};
                 {{ else if (exists "/etc/nginx/vhost.d/default_location") }}
                 include /etc/nginx/vhost.d/default_location;
                 {{ end }}
