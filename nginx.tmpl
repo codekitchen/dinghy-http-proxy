@@ -90,7 +90,7 @@ server {
 
 server {
 	server_name {{ $host }};
-	listen 443 ssl;
+	listen 443 http2 ssl;
 	access_log /var/log/nginx/access.log vhost;
 
 	ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
