@@ -100,6 +100,13 @@ To prevent your browser to emit warning regarding self-signed certificates, you 
 Since this functionality is generally useful for local development work even
 outside of Dinghy, this proxy now supports running standalone.
 
+#### Environment variables
+
+We include a few environment variables to customize the proxy / dns server:
+
+- `DOMAIN_TLD` default: `docker` - The DNS server will only respond to `*.docker` by default. You can change this to `dev` if it suits your workflow
+- `DNS_IP` default: `127.0.0.1` - Setting this variable is explained below
+
 ### OS X
 
 You'll need the IP of your VM:
