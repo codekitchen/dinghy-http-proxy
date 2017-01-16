@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 
 	docker "github.com/fsouza/go-dockerclient"
 )
@@ -19,17 +20,36 @@ func main() {
 		panic(err)
 	}
 
-	currentNetworks := getJoinedNetworks(client, *containerName)
-	bridgeNetworks := getBridgeNetworks(client)
+	// get actual container ID, in case name is passed in
+	container, err := client.InspectContainer(*containerName)
+	if err != nil {
+		panic(err)
+	}
+	containerID := container.ID
 
-	for _, id := range bridgeNetworks {
-		if !currentNetworks[id] {
-			err := client.ConnectNetwork(id, docker.NetworkConnectionOptions{
-				Container: *containerName,
-			})
-			if err != nil {
-				panic(err)
-			}
+	currentNetworks := getJoinedNetworks(client, containerID)
+	bridgeNetworks := getActiveBridgeNetworks(client, containerID)
+
+	toJoin := getNetworksToJoin(currentNetworks, bridgeNetworks)
+	toLeave := getNetworksToLeave(currentNetworks, bridgeNetworks)
+
+	for _, id := range toLeave {
+		fmt.Printf("leaving network %s", id)
+		err := client.DisconnectNetwork(id, docker.NetworkConnectionOptions{
+			Container: *containerName,
+		})
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	for _, id := range toJoin {
+		fmt.Printf("joining network %s", id)
+		err := client.ConnectNetwork(id, docker.NetworkConnectionOptions{
+			Container: *containerName,
+		})
+		if err != nil {
+			panic(err)
 		}
 	}
 }
@@ -49,16 +69,44 @@ func getJoinedNetworks(client *docker.Client, containerName string) (networks ma
 	return
 }
 
-func getBridgeNetworks(client *docker.Client) (ids []string) {
-	networks, err := client.ListNetworks()
+func getActiveBridgeNetworks(client *docker.Client, containerName string) (networks map[string]bool) {
+	networks = make(map[string]bool)
+
+	allNetworks, err := client.ListNetworks()
 	if err != nil {
 		panic(err)
 	}
 
-	for _, net := range networks {
+	for _, net := range allNetworks {
 		if net.Driver == "bridge" {
-			ids = append(ids, net.ID)
+			_, containsSelf := net.Containers[containerName]
+			if net.Options["com.docker.network.bridge.default_bridge"] == "true" ||
+				len(net.Containers) > 1 ||
+				(len(net.Containers) == 1 && !containsSelf) {
+				networks[net.ID] = true
+			}
 		}
 	}
+
+	return
+}
+
+func getNetworksToJoin(currentNetworks map[string]bool, bridgeNetworks map[string]bool) (ids []string) {
+	for id := range bridgeNetworks {
+		if !currentNetworks[id] {
+			ids = append(ids, id)
+		}
+	}
+
+	return
+}
+
+func getNetworksToLeave(currentNetworks map[string]bool, bridgeNetworks map[string]bool) (ids []string) {
+	for id := range currentNetworks {
+		if !bridgeNetworks[id] {
+			ids = append(ids, id)
+		}
+	}
+
 	return
 }
