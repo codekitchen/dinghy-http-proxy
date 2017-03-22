@@ -48,6 +48,14 @@ If you need to support multiple virtual hosts for a container, you can separate 
 
 You can also use wildcards at the beginning and the end of host name, like `*.bar.com` or `foo.bar.*`. Or even a regular expression, which can be very useful in conjunction with a wildcard DNS service like [xip.io](http://xip.io), using `~^foo\.bar\..*\.xip\.io` will match `foo.bar.127.0.0.1.xip.io`, `foo.bar.10.0.2.2.xip.io` and all other given IPs. More information about this topic can be found in the nginx documentation about [`server_names`](http://nginx.org/en/docs/http/server_names.html).
 
+### Enabling CORS
+
+You can set the `CORS_ENABLED`
+environment variable either with the `-e` option to docker or
+the environment hash in docker-compose. For instance setting
+`CORS_ENABLED=true` will allow the container's web proxy to accept cross domain
+requests.
+
 ### Subdomain Support
 
 If you want your container to also be available at all subdomains to the given
