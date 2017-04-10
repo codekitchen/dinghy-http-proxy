@@ -33,8 +33,10 @@ func main() {
 	toJoin := getNetworksToJoin(currentNetworks, bridgeNetworks)
 	toLeave := getNetworksToLeave(currentNetworks, bridgeNetworks)
 
+	fmt.Printf("currently in %d networks, found %d bridge networks, %d to join, %d to leave\n", len(currentNetworks), len(bridgeNetworks), len(toJoin), len(toLeave))
+
 	for _, id := range toLeave {
-		fmt.Printf("leaving network %s", id)
+		fmt.Printf("leaving network %s\n", id)
 		err := client.DisconnectNetwork(id, docker.NetworkConnectionOptions{
 			Container: *containerName,
 		})
@@ -44,7 +46,7 @@ func main() {
 	}
 
 	for _, id := range toJoin {
-		fmt.Printf("joining network %s", id)
+		fmt.Printf("joining network %s\n", id)
 		err := client.ConnectNetwork(id, docker.NetworkConnectionOptions{
 			Container: *containerName,
 		})
