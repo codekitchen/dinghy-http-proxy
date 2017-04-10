@@ -7,7 +7,7 @@ RUN apt-get update \
  && apt-get clean \
  && rm -r /var/lib/apt/lists/*
 
-RUN wget https://github.com/codekitchen/dinghy-http-proxy/releases/download/join-networks-v2/join-networks.tar.gz \
+RUN wget https://github.com/codekitchen/dinghy-http-proxy/releases/download/join-networks-v3/join-networks.tar.gz \
  && tar -C /app -xzvf join-networks.tar.gz \
  && rm join-networks.tar.gz
 
