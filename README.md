@@ -98,7 +98,9 @@ You can generate self-signed certificates using ```openssl```.
 ```bash
 openssl req -x509 -newkey rsa:2048 -keyout foo.bar.com.docker.key \
 -out foo.bar.com.docker.crt -days 365 -nodes \
--subj "/C=US/ST=Oregon/L=Portland/O=Company Name/OU=Org/CN=foo.bar.com.docker"
+-subj "/C=US/ST=Oregon/L=Portland/O=Company Name/OU=Org/CN=foo.bar.com.docker" \
+-config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:foo.bar.com.docker")) \
+-reqexts SAN -extensions SAN
 ```
 
 To prevent your browser to emit warning regarding self-signed certificates, you can install them on your system as trusted certificates.
