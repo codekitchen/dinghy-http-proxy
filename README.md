@@ -122,7 +122,7 @@ We include a few environment variables to customize the proxy / dns server:
 You'll need the IP of your VM:
 
 * For docker-machine, run `docker-machine ip <machine_name>` to get the IP.
-* For Docker for Mac, you can use `127.0.0.1` as the IP, since it forwards docker ports to the host machine.
+* For Docker for Mac, you can omit the `DNS_IP` environment argument or use `127.0.0.1` as the IP, since it forwards docker ports to the host machine.
 
 Then start the proxy:
 
