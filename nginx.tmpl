@@ -46,14 +46,17 @@ server {
 
 {{ define "server" }}
 
-{{ $host := trim .Host }}
+{{/* Parse port off of host if present ("host:port"). */}}
+{{ $host_port := split (trim .Host) ":" }}
+{{ $host := index $host_port 0 }}
+{{ $port := when (eq (len $host_port) 2) (last $host_port) nil }}
 
 {{/* Get the VIRTUAL_PROTO defined by containers w/ the same vhost, falling back to "http" */}}
 {{ $proto := or (first (groupByKeys .Containers "Env.VIRTUAL_PROTO")) "http" }}
 
 upstream {{ $host }} {
 {{ range $container := .Containers }}
-	{{ $port := coalesce $container.Env.VIRTUAL_PORT (first $container.Addresses).Port "80" }}
+	{{ $port := coalesce $port $container.Env.VIRTUAL_PORT (first $container.Addresses).Port "80" }}
 	{{ $address := or (first $container.Addresses).IP (first $container.Networks).IP }}
 	server {{ $address }}:{{ $port }};
 {{ end }}
