@@ -112,6 +112,8 @@ server {
 	{{ if (exists (printf "/etc/nginx/certs/%s.dhparam.pem" $cert)) }}
 	ssl_dhparam {{ printf "/etc/nginx/certs/%s.dhparam.pem" $cert }};
 	{{ end }}
+	
+	add_header Strict-Transport-Security "max-age={{ or (first (groupByKeys .Containers "Env.HSTS_MAX_AGE")) "31536000" }}";
 
 	{{ if (exists (printf "/etc/nginx/vhost.d/%s" $host)) }}
 	include {{ printf "/etc/nginx/vhost.d/%s" $host }};
