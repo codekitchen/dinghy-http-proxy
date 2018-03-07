@@ -171,3 +171,42 @@ directly on the host, as it defaults to `127.0.0.1`.
 Different Linux distributions will require different steps for configuring DNS
 resolution. The [Dory](https://github.com/FreedomBen/dory) project may be useful
 here, it knows how to configure common distros for `dinghy-http-proxy`.
+
+### Windows
+
+* For Docker for Windows, you can use `127.0.0.1` as the DNS IP.
+
+From Powershell:
+```
+docker run -d --restart=always `
+  -v /var/run/docker.sock:/tmp/docker.sock:ro `
+  -p 80:80 -p 443:443 -p 19322:19322/udp `
+  -e CONTAINER_NAME=http-proxy `
+  -e DNS_IP=127.0.0.1 `
+  --name http-proxy `
+  codekitchen/dinghy-http-proxy
+```
+
+From docker-compose:
+```
+version: '2'
+services:
+
+  http-proxy:
+    container_name: http-proxy
+    image: codekitchen/dinghy-http-proxy
+    environment:
+      - DNS_IP=127.0.0.1
+      - CONTAINER_NAME=http-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "19322:19322/udp"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+```
+
+You will have to add the hosts to `C:\Windows\System32\drivers\etc\hosts` manually. There are various Powershell scripts available to help manage this:
+
+ - http://get-carbon.org/Set-HostsEntry.html
+ - https://gist.github.com/markembling/173887
