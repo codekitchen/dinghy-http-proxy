@@ -1,6 +1,6 @@
 # Dinghy HTTP Proxy
 
-[![Docker Automated buil](https://img.shields.io/docker/automated/jrottenberg/ffmpeg.svg)](https://hub.docker.com/r/codekitchen/dinghy-http-proxy/)
+[![Docker Automated build](https://img.shields.io/docker/automated/jrottenberg/ffmpeg.svg)](https://hub.docker.com/r/codekitchen/dinghy-http-proxy/)
 
 This is the HTTP Proxy and DNS server that
 [Dinghy](https://github.com/codekitchen/dinghy) uses.
