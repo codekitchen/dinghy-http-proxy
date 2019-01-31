@@ -5,6 +5,7 @@ MAINTAINER Brian Palmer <brian@codekitchen.net>
 RUN apk upgrade --no-cache && \
     apk add --no-cache --virtual=run-deps \
       su-exec \
+      curl \
       dnsmasq && \
     rm -rf /tmp/* \
            /var/cache/apk/*  \
@@ -26,5 +27,7 @@ COPY htdocs /var/www/default/htdocs/
 ENV DOMAIN_TLD docker
 ENV DNS_IP 127.0.0.1
 ENV HOSTMACHINE_IP 127.0.0.1
+
+HEALTHCHECK CMD curl --fail http://localhost/ || exit 1
 
 EXPOSE 19322
