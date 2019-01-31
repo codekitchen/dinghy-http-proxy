@@ -1,15 +1,17 @@
-FROM jwilder/nginx-proxy:latest
+FROM jwilder/nginx-proxy:alpine
 MAINTAINER Brian Palmer <brian@codekitchen.net>
 
-RUN apt-get update \
- && apt-get install -y -q --no-install-recommends \
-    dnsmasq \
- && apt-get clean \
- && rm -r /var/lib/apt/lists/*
+### Install Application
+RUN apk upgrade --no-cache && \
+    apk add --no-cache --virtual=run-deps \
+      su-exec \
+      dnsmasq && \
+    rm -rf /tmp/* \
+           /var/cache/apk/*  \
+           /var/tmp/*
 
-RUN wget https://github.com/codekitchen/dinghy-http-proxy/releases/download/join-networks-v3/join-networks.tar.gz \
- && tar -C /app -xzvf join-networks.tar.gz \
- && rm join-networks.tar.gz
+COPY join-networks /app/
+RUN chmod +x /app/join-networks
 
 COPY Procfile /app/
 

@@ -1,6 +1,4 @@
 #!/bin/bash
 set -e
 
-docker run --rm -v "$PWD":/go/src/github.com/codekitchen/dinghy-http-proxy -w /go/src/github.com/codekitchen/dinghy-http-proxy golang:1.8 go build -v -o join-networks
-tar czvf join-networks.tar.gz join-networks
-rm join-networks
+docker run --rm -e GOOS=linux -e GOARCH=amd64 -e CGO_ENABLED=0 -v "$PWD":/go/src/github.com/codekitchen/dinghy-http-proxy -w /go/src/github.com/codekitchen/dinghy-http-proxy golang go get github.com/fsouza/go-dockerclient && env GOOS=linux GOARCH=amd64 go build -v -o join-networks
