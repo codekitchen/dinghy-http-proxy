@@ -1,4 +1,0 @@
-[submodule "vendor/github.com/fsouza/go-dockerclient"]
-	path = vendor/github.com/fsouza/go-dockerclient
-  url = https://github.com/fsouza/go-dockerclient.git
-	branch = master
