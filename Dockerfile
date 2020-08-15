@@ -5,7 +5,7 @@ RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go get -v github.com/fsouza/go-dockerc
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -v -o join-networks
 
 FROM jwilder/nginx-proxy:alpine
-MAINTAINER Brian Palmer <brian@codekitchen.net>
+LABEL Author="Brian Palmer <brian@codekitchen.net>"
 
 RUN apk upgrade --no-cache \
  && apk add --no-cache --virtual=run-deps \
