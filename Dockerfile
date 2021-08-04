@@ -1,8 +1,9 @@
-FROM golang:1.15 as builder
+FROM golang:1.16.5 as builder
 WORKDIR /go/src/github.com/codekitchen/dinghy-http-proxy
+RUN go mod init
 COPY join-networks.go .
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go get -v github.com/fsouza/go-dockerclient
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -v -o join-networks
+RUN GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go get -v github.com/fsouza/go-dockerclient
+RUN GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -v -o join-networks
 
 FROM jwilder/nginx-proxy:alpine
 LABEL Author="Brian Palmer <brian@codekitchen.net>"
