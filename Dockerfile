@@ -1,6 +1,7 @@
-FROM golang:1.15 as builder
+FROM golang:1.16 as builder
 WORKDIR /go/src/github.com/codekitchen/dinghy-http-proxy
 COPY join-networks.go .
+COPY go.mod .
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go get -v github.com/fsouza/go-dockerclient
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -v -o join-networks
 
@@ -8,13 +9,13 @@ FROM jwilder/nginx-proxy:alpine
 LABEL Author="Brian Palmer <brian@codekitchen.net>"
 
 RUN apk upgrade --no-cache \
- && apk add --no-cache --virtual=run-deps \
-      su-exec \
-      curl \
-      dnsmasq \
- && rm -rf /tmp/* \
-      /var/cache/apk/* \
-      /var/tmp/*
+     && apk add --no-cache --virtual=run-deps \
+     su-exec \
+     curl \
+     dnsmasq \
+     && rm -rf /tmp/* \
+     /var/cache/apk/* \
+     /var/tmp/*
 
 COPY --from=builder /go/src/github.com/codekitchen/dinghy-http-proxy/join-networks /app/join-networks
 
