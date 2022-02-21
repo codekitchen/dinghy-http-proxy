@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// get actual container ID, in case name is passed in
-	container, err := client.InspectContainer(*containerName)
+	container, err := client.InspectContainerWithOptions(docker.InspectContainerOptions{ID: *containerName})
 	if err != nil {
 		panic(err)
 	}
@@ -59,7 +59,7 @@ func main() {
 func getJoinedNetworks(client *docker.Client, containerName string) (networks map[string]bool) {
 	networks = make(map[string]bool)
 
-	container, err := client.InspectContainer(containerName)
+	container, err := client.InspectContainerWithOptions(docker.InspectContainerOptions{ID: containerName})
 	if err != nil {
 		panic(err)
 	}
