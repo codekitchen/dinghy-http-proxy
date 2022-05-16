@@ -62,6 +62,12 @@ the environment hash in docker-compose. For instance setting
 `CORS_ENABLED=true` will allow the container's web proxy to accept cross domain
 requests.
 
+If you want to be more specific, you can also set `CORS_DOMAINS` (along with `CORS_ENABLED`) to specify the domains you want to whitelist. They need to be separated using comma.
+
+This is especially helpful when you have to deal with CORS with authenticated cross domain requests.
+
+More information on this topic on [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers).
+
 ### Subdomain Support
 
 If you want your container to also be available at all subdomains to the given
