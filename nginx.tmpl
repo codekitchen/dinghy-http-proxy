@@ -109,6 +109,9 @@ upstream {{ $host }} {
 {{/* Get the first cors enabled defined by containers w/ the same vhost */}}
 {{ $corsEnabled := or (first (groupByKeys .Containers "Env.CORS_ENABLED")) "false" }}
 
+{{/* Use corsDomains if defined, wildcard otherwise */}}
+{{ $corsDomains := or (first (groupByKeys .Containers "Env.CORS_DOMAINS")) "*" }}
+
 {{/* Get the best matching cert  by name for the vhost. */}}
 {{ $vhostCert := (closest (dir "/etc/nginx/certs") (printf "%s.crt" $host))}}
 
@@ -150,7 +153,7 @@ server {
 	{{ if (exists (printf "/etc/nginx/certs/%s.dhparam.pem" $cert)) }}
 	ssl_dhparam {{ printf "/etc/nginx/certs/%s.dhparam.pem" $cert }};
 	{{ end }}
-	
+
 	add_header Strict-Transport-Security "max-age={{ or (first (groupByKeys .Containers "Env.HSTS_MAX_AGE")) "31536000" }}";
 
 	{{ if (exists (printf "/etc/nginx/vhost.d/%s" $host)) }}
@@ -162,7 +165,7 @@ server {
 	location / {
     {{ if (parseBool $corsEnabled) }}
     if ($request_method = 'OPTIONS') {
-      add_header 'Access-Control-Allow-Origin' '*';
+      add_header 'Access-Control-Allow-Origin' '{{ $corsDomains }}';
       add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
       #
       # Custom headers and headers various browsers *should* be OK with but aren't
@@ -177,13 +180,13 @@ server {
       return 204;
     }
     if ($request_method = 'POST') {
-      add_header 'Access-Control-Allow-Origin' '*';
+      add_header 'Access-Control-Allow-Origin' '{{ $corsDomains }}';
       add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
       add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range';
       add_header 'Access-Control-Expose-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range';
     }
     if ($request_method = 'GET') {
-      add_header 'Access-Control-Allow-Origin' '*';
+      add_header 'Access-Control-Allow-Origin' '{{ $corsDomains }}';
       add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
       add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range';
       add_header 'Access-Control-Expose-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range';
@@ -220,7 +223,7 @@ server {
 	location / {
     {{ if (parseBool $corsEnabled) }}
     if ($request_method = 'OPTIONS') {
-      add_header 'Access-Control-Allow-Origin' '*';
+      add_header 'Access-Control-Allow-Origin' '{{ $corsDomains }}';
       add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
       #
       # Custom headers and headers various browsers *should* be OK with but aren't
@@ -235,13 +238,13 @@ server {
       return 204;
     }
     if ($request_method = 'POST') {
-      add_header 'Access-Control-Allow-Origin' '*';
+      add_header 'Access-Control-Allow-Origin' '{{ $corsDomains }}';
       add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
       add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range';
       add_header 'Access-Control-Expose-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range';
     }
     if ($request_method = 'GET') {
-      add_header 'Access-Control-Allow-Origin' '*';
+      add_header 'Access-Control-Allow-Origin' '{{ $corsDomains }}';
       add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
       add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range';
       add_header 'Access-Control-Expose-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range';
