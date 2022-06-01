@@ -2,8 +2,10 @@
 
 set -eo pipefail
 
-TAG=${1:?"Must supply tag"}
+REPO=codekitchen/dinghy-http-proxy
+TAG=$REPO:${1:?"Must supply tag"}
+LATEST=$REPO:latest
 
 BUILDER=$(docker buildx create --use)
-docker buildx build --platform linux/amd64,linux/arm64 -t "$TAG" --push .
+docker buildx build --platform linux/amd64,linux/arm64 -t "$TAG" -t "$LATEST" --push .
 docker buildx rm "$BUILDER"
