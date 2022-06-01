@@ -1,6 +1,9 @@
 #!/bin/bash
 
+set -eo pipefail
+
 TAG=${1:?"Must supply tag"}
 
-docker buildx create --use
+BUILDER=$(docker buildx create --use)
 docker buildx build --platform linux/amd64,linux/arm64 -t "$TAG" --push .
+docker buildx rm "$BUILDER"
