@@ -1,4 +1,4 @@
-FROM golang:1.16 as builder
+FROM golang:1.23 as builder
 WORKDIR /go/src/github.com/codekitchen/dinghy-http-proxy
 COPY join-networks.go .
 COPY go.mod .
